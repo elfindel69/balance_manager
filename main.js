@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog,Menu} = require('electron');
 const path = require('path');
 let newItemWindow;
 let homeWindow;
@@ -84,10 +84,8 @@ app.on('activate', () => {
     }
 });
 
-/**
- * channel d'ajout d'item
- */
-ipcMain.on('open-new-item-window',(e,data)=>{
+
+const openNewItemWindowCb= (e,data)=>{
     //si il y a une fenêtre, on l'affiche
     if(newItemWindow){
         newItemWindow.focus();
@@ -122,7 +120,11 @@ ipcMain.on('open-new-item-window',(e,data)=>{
         newItemWindow = null;
         ipcMain.removeHandler('new-item');
     });
-})
+};
+/**
+ * channel d'ajout d'item
+ */
+ipcMain.on('open-new-item-window',openNewItemWindowCb)
 
 /**
  * édition d'un item
@@ -191,3 +193,48 @@ ipcMain.handle("show-confirm-delete-item",(e,data)=>{
     return {choice, expenses, profits}
 })
 
+
+const menuConfig = [
+    {
+        label: 'Action',
+        submenu: [
+            {
+                label: 'Nouvelle dépense',
+                accelerator: 'CmdOrCtrl+N',
+                click() {
+                    openNewItemWindowCb(null,{type:"expense"});
+                }
+            },
+            {
+                label: 'Nouvelle recette',
+                accelerator: 'CmdOrCtrl+B',
+                click() {
+                    openNewItemWindowCb(null,{type:"profit"});
+                }
+            }
+            ,
+            {
+                label: 'Activer/Désactiver le mode édition',
+                accelerator: 'CmdOrCtrl+E',
+                click() {
+                    homeWindow.send('toggle-edition-mode');
+                }
+            }
+        ]
+    },
+    {
+        label: 'Fenêtre',
+        submenu: [
+            {role:"reload"},
+            {role:"toggledevtools"},
+            {type:"separator"},
+            {role:"togglefullscreen"},
+            {role:"minimize"},
+            {type:"separator"},
+            {role:"close"}
+        ]
+    }
+];
+
+const menu = Menu.buildFromTemplate(menuConfig);
+Menu.setApplicationMenu(menu);
