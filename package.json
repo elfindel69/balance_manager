@@ -1,20 +1,33 @@
 {
   "name": "balance-manager",
   "version": "1.0.0",
-  "description": "",
+  "description": "app de gestion de budget",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [],
-  "author": "",
+  "author": "elfindel69",
   "license": "ISC",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
     "bootstrap": "^5.1.1",
     "bootswatch": "^5.1.1",
-    "electron": "^15.0.0",
     "electron-store": "^8.0.1"
+  },
+  "devDependencies": {
+    "electron-builder": "^22.11.7",
+    "electron": "^15.0.0"
+  },
+  "version": "1.0.0",
+  "build": {
+    "appId": "elfindel69.balance-manager",
+    "mac": {
+      "category": "elfindel69.balance-manager.balance.manager"
+    }
   }
 }

@@ -219,7 +219,7 @@ ipcMain.handle("show-confirm-delete-item",(e,data)=>{
     return {choice, expenses, profits}
 })
 
-
+//menu
 const menuConfig = [
     {
         label: 'Action',

@@ -134,7 +134,7 @@ ipcRenderer.on("new-item-added",(e,data)=>{
     }
 )
 
-
+//affichage colonne action
 ipcRenderer.on("toggle-edition-mode",()=>{
     isEditionModeActivated = !isEditionModeActivated;
     const trTHeads = document.querySelectorAll('thead tr');
