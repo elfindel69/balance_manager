@@ -78,7 +78,7 @@ function createWindow(viewName,dataToSend,width=1600,height=900) {
         }
     });
     //ouverture de la fenêtre de débug
-    win.webContents.openDevTools();
+    //win.webContents.openDevTools();
     //retour
     return win;
 }
