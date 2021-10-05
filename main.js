@@ -1,36 +1,56 @@
 const {app, BrowserWindow, ipcMain, dialog,Menu} = require('electron');
 const path = require('path');
+const Store = require('electron-store');
+
+//fenêtres
 let newItemWindow;
 let homeWindow;
 let editItemWindow;
 
-//tableau de dépenses
-const expenses = [
-    {
-        id: 1,
-        label: "Achat huile moteur",
-        value: 80
-    },
-    {
-        id: 2,
-        label: "Achat joint vidange",
-        value: 20
-    },
-    {
-        id: 3,
-        label: "Achat filtre à huile",
-        value: 10
-    }
-];
+//init tableaux
+let expenses = null;
+let profits = null;
 
+//persistance en JSON
+const store = new Store();
+//tableau de dépenses
+if(store.has("expenses")){
+    expenses = store.get("expenses");
+}else {
+    expenses = [
+        {
+            id: 1,
+            label: "Achat huile moteur",
+            value: 80
+        },
+        {
+            id: 2,
+            label: "Achat joint vidange",
+            value: 20
+        },
+        {
+            id: 3,
+            label: "Achat filtre à huile",
+            value: 10
+        }
+    ];
+    store.set("expenses",expenses);
+}
 //tableau de recettes
-const profits = [
-    {
-        id: 1,
-        label: "Vidange voiture",
-        value: 150
-    }
-];
+if(store.has("profits")){
+    profits = store.get("profits");
+}else{
+    profits = [
+        {
+            id: 1,
+            label: "Vidange voiture",
+            value: 150
+        }
+    ];
+    store.set("profits",profits);
+}
+
+
 
 /**
  * fonction de création de fenêtre
@@ -65,6 +85,7 @@ function createWindow(viewName,dataToSend,width=1600,height=900) {
 
 //création de la fenêtre
 app.whenReady().then(()=>{
+    console.log(app.getPath('userData'));
     const data = {expenses,profits};
     homeWindow = createWindow("home",data)
 });
@@ -79,6 +100,7 @@ app.on('window-all-closed', () => {
 //activation de la fenêtre
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
+        console.log(app.getPath('userData'));
         const data = {expenses,profits};
         homeWindow = createWindow("home",data)
     }
@@ -103,7 +125,8 @@ const openNewItemWindowCb= (e,data)=>{
         }
         newItem.id = id;
         selectedArray.push(newItem);
-
+        //stockage de l'item
+        store.set(`${data.type}s`,selectedArray);
         //envoi de l'item à la vue principale
         homeWindow.send('new-item-added',{
             item: [newItem],
@@ -129,22 +152,24 @@ ipcMain.on('open-new-item-window',openNewItemWindowCb)
 /**
  * édition d'un item
  */
-ipcMain.on('open-edit-item-window',(e,data)=>{
+ipcMain.on('open-edit-item-window',(e,dataItem)=>{
     //si une fenêtre est ouverte on la ferme
     if(editItemWindow){
         editItemWindow.close();
     }
 
    //recherche de l'item
-    const selectedTab = data.type === 'expenses'?expenses:profits;
+    const selectedTab = dataItem.type === 'expenses'?expenses:profits;
     for(let [index,item] of selectedTab.entries()){
-        if(item.id === data.id){
+        if(item.id === dataItem.id){
             //création de la fenêtre
             editItemWindow = createWindow("edit-item", {item},1000,500);
             //mise à jour de l'item
             ipcMain.handle('edit-item',(e,data)=>{
                 selectedTab[index].label = data.label;
                 selectedTab[index].value = data.value;
+
+                store.set(dataItem.type,selectedTab);
                 //mise à jour du front
                 homeWindow.send('edited-item',{item:selectedTab[index],expenses,profits});
                 //message de retour
@@ -186,6 +211,7 @@ ipcMain.handle("show-confirm-delete-item",(e,data)=>{
            if(item.id === data.id){
                //suppression de l'élément
                selectedTab.splice(index,1);
+               store.set(data.type,selectedTab);
                break;
            }
        }
